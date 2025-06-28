@@ -117,6 +117,7 @@ vim.o.showmode = false
 vim.schedule(function()
   vim.o.clipboard = 'unnamedplus'
 end)
+vim.opt.clipboard = 'unnamedplus'
 
 -- Enable break indent
 vim.o.breakindent = true
@@ -151,6 +152,15 @@ vim.o.splitbelow = true
 --   and `:help lua-options-guide`
 vim.o.list = true
 vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+
+-- Configure <Tab> as four spaces globally
+vim.o.tabstop = 4 -- TAB = 4 spaces
+vim.o.expandtab = true -- Insert spaces instad of TAB
+vim.o.softtabstop = 4 -- 4 space to replace TAB
+vim.o.shiftwidth = 4 -- 4 space indent
+
+vim.o.smartindent = true
+vim.o.autoindent = true
 
 -- Preview substitutions live, as you type!
 vim.o.inccommand = 'split'
@@ -209,6 +219,13 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 vim.keymap.set({ 'n', 'v' }, '<leader>y', [["+y]])
 vim.keymap.set('n', '<leader>Y', [["+Y]])
 
+-- Shift tab is ctrl d
+vim.keymap.set('i', '<S-Tab>', '<C-d>', { desc = 'Shift Tab unindent' })
+-- Tab in normal mode works like EMACS
+vim.keymap.set('n', '<Tab>', '==', { desc = 'Auto-indent current line in normal mode)' })
+-- Tab in visual mode bulk works like EMACS
+vim.keymap.set('v', '<Tab>', '==', { desc = 'Auto-indent selected lines in visual mode' })
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -222,6 +239,29 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.hl.on_yank()
   end,
 })
+
+-- Two-space indents for certain file types:
+
+-- This helps prevent re-adding duplicate autocommands if your config is sourced multiple times
+local augroup_filetype_indent = vim.api.nvim_create_augroup('FileTypeIndent', { clear = true })
+
+-- Define the filetypes to apply 2-space indentation to
+local two_space_filetypes = { 'xml', 'html', 'xsd' }
+
+-- Loop through the filetypes and apply the settings
+for _, filetype in ipairs(two_space_filetypes) do
+  vim.api.nvim_create_autocmd('FileType', {
+    group = augroup_filetype_indent,
+    pattern = filetype,
+    callback = function()
+      vim.opt_local.tabstop = 2
+      vim.opt_local.shiftwidth = 2
+      vim.opt_local.expandtab = true -- Ensure spaces are used
+      vim.opt_local.softtabstop = 2
+    end,
+    desc = 'Set 2-space indentation for ' .. filetype,
+  })
+end
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
@@ -675,7 +715,6 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
         -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
@@ -687,6 +726,10 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
         --
+        clangd = {
+          fallbackFlags = { '-stdc++23', '-Wall', '-pedantic' },
+          semanticHighlighting = true,
+        },
 
         lua_ls = {
           -- cmd = { ... },
