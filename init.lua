@@ -226,6 +226,9 @@ vim.keymap.set('n', '<Tab>', '==', { desc = 'Auto-indent current line in normal 
 -- Tab in visual mode bulk works like EMACS
 vim.keymap.set('v', '<Tab>', '==', { desc = 'Auto-indent selected lines in visual mode' })
 
+-- Semicolon for colon in normal mode
+vim.keymap.set('n', ';', ':', { desc = 'Semicolon for commands' })
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -727,7 +730,7 @@ require('lazy').setup({
         -- ts_ls = {},
         --
         clangd = {
-          fallbackFlags = { '-stdc++23', '-Wall', '-pedantic' },
+          fallbackFlags = { '-stdc++20', '-Wall', '-pedantic' },
           semanticHighlighting = true,
         },
 
