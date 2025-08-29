@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -265,6 +265,114 @@ for _, filetype in ipairs(two_space_filetypes) do
     desc = 'Set 2-space indentation for ' .. filetype,
   })
 end
+
+-- Set tab to be an actual tab character for Makefiles
+vim.api.nvim_create_autocmd({ 'FileType' }, {
+  pattern = { 'Makefile' },
+  callback = function()
+    vim.opt_local.expandtab = false
+    vim.opt_local.tabstop = 8
+    vim.opt_local.shiftwidth = 8
+  end,
+})
+
+-- **********************************************************
+-- Automatic header comments for various file types:
+-- **********************************************************
+
+-- **********************************************************
+-- C style header comment
+-- **********************************************************
+local function c_style_header()
+  -- local username = vim.fn.getenv 'USER' or 'User'
+  local date = os.date '%m-%d-%Y'
+
+  local header = {
+    '/*',
+    ' * ' .. vim.fn.expand '%:t' .. ' - ',
+    ' *',
+    ' * Ben Cavanagh',
+    ' * ' .. date,
+    ' * Description: ',
+    ' *',
+    ' */',
+    '',
+  }
+  return header
+end
+
+-- Autocommand to add headers on new files
+vim.api.nvim_create_autocmd('BufNewFile', {
+  pattern = { '*.c', '*.cpp', '*.h', '*.hpp' },
+  callback = function()
+    local header = c_style_header()
+    vim.api.nvim_buf_set_lines(0, 0, 0, false, header)
+    vim.api.nvim_win_set_cursor(0, { #header + 1, 0 }) -- move cursor under header
+  end,
+})
+
+-- **********************************************************
+-- XML style header comment
+-- **********************************************************
+local function xml_style_header()
+  -- local username = vim.fn.getenv 'USER' or 'User'
+  local date = os.date '%m-%d-%Y'
+
+  local header = {
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<!--',
+    '  ' .. vim.fn.expand '%:t' .. ' - ',
+    '',
+    '  Ben Cavanagh',
+    '  ' .. date,
+    '  Description: ',
+    '',
+    '-->',
+    '',
+  }
+  return header
+end
+
+vim.api.nvim_create_autocmd('BufNewFile', {
+  pattern = { '*.html', '*.xml', '*.xsd', '*.tdml' },
+  callback = function()
+    local header = xml_style_header()
+    vim.api.nvim_buf_set_lines(0, 0, 0, false, header)
+    vim.api.nvim_win_set_cursor(0, { #header + 1, 0 })
+  end,
+})
+
+-- **********************************************************
+-- Python style header comment
+-- **********************************************************
+local function py_style_header()
+  -- local username = vim.fn.getenv 'USER' or 'User'
+  local date = os.date '%m-%d-%Y'
+
+  local header = {
+    '# ' .. vim.fn.expand '%:t' .. ' - ',
+    '#',
+    '# Ben Cavanagh',
+    '# ' .. date,
+    '# Description: ',
+    '#',
+    '',
+  }
+  return header
+end
+
+-- Autocommand to add headers on new files
+vim.api.nvim_create_autocmd('BufNewFile', {
+  pattern = { '*.py' },
+  callback = function()
+    local header = py_style_header()
+    vim.api.nvim_buf_set_lines(0, 0, 0, false, header)
+    vim.api.nvim_win_set_cursor(0, { #header + 1, 0 }) -- move cursor under header
+  end,
+})
+
+-- **********************************************************
+-- **********************************************************
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
