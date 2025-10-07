@@ -372,8 +372,9 @@ vim.api.nvim_create_autocmd('BufNewFile', {
 })
 
 -- **********************************************************
--- Backup files
 -- **********************************************************
+
+-- Backup files
 
 -- Define the desired backup directory relative to the current file's directory
 local backup_dir_name = './.nvim_backup'
@@ -417,9 +418,6 @@ vim.api.nvim_create_autocmd('BufWritePre', {
     vim.opt.backupext = '-' .. vim.fn.strftime '%Y%m%d%H%M~'
   end,
 })
-
--- **********************************************************
--- **********************************************************
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
