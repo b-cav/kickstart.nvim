@@ -1,0 +1,20 @@
+-- COSC 60 25F Final Project
+-- Ben Cavanagh, Josh Meise
+--
+-- Keystroke tracker for dart collaborative
+-- editor. Converts all nvim keystrokes into
+-- "insert" "delete" or "replace" edits.
+--
+
+UPDATES = {}
+
+function log_updates(buffer)
+  send = false -- Should we return the entire starting buffer?
+  vim.api.nvim_buf_attach(buffer, send, {
+    on_bytes = function()
+      table.insert(UPDATES, {})
+    end,
+  })
+end
+
+function start() end

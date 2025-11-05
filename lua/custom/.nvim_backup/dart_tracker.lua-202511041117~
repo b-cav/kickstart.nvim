@@ -1,0 +1,35 @@
+-- COSC 60 25F Final Project
+-- Ben Cavanagh, Josh Meise
+--
+-- Keystroke tracker for dart collaborative
+-- editor. Converts all nvim keystrokes into
+-- "insert" "delete" or "replace" edits.
+--
+
+UPDATES = {}
+
+function UPDATES.log_updates(buffer)
+  local send = false -- Should we return the entire starting buffer?
+  vim.api.nvim_buf_attach(buffer, send, {
+    on_bytes = function()
+      table.insert(UPDATES, {})
+    end,
+  })
+
+  local log_file = io.open("~/dartmouth/classes/cosc60-final/dartlog.txt", "a")
+  if log_file ~= nil then
+    log_file:write(UPDATES[-1], '\n')
+  end
+end
+
+function UPDATES.start()
+  vim.notify("Starting change tracker")
+  print("hello?")
+  local curr = vim.bufnr('', 0) -- Get curr buffer
+  if curr ~= -1 then
+    UPDATES.log_updates(curr)
+  end
+  return(1)
+end
+
+return UPDATES

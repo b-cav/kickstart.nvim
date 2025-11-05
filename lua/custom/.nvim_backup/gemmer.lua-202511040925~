@@ -1,0 +1,37 @@
+-- This is a simplified example
+local function my_change_logger(bufnr)
+  -- The actual on_bytes function is more complex
+  -- but this is the idea
+  local callback = function(_, _, _, start_row, start_col, _, old_end_row, old_end_col, new_end_row, new_end_col, old_lines, new_lines)
+    -- 1. Analyze the change data
+    local change_type = 'REPLACE'
+    if #old_lines == 1 and old_lines[1] == '' then
+      change_type = 'INSERT'
+    elseif #new_lines == 1 and new_lines[1] == '' then
+      change_type = 'DELETE'
+    end
+
+    -- 2. Format the log string
+    local log_message = string.format('[%s] at %d:%d -- New text: %s\n', change_type, start_row + 1, start_col + 1, table.concat(new_lines, '\\n'))
+
+    -- 3. Write to a file
+    local file = io.open('/tmp/my_nvim_log.txt', 'a')
+    if file then
+      file:write(log_message)
+      file:close()
+    end
+  end
+
+  -- 4. Attach the listener!
+  vim.api.nvim_buf_attach(bufnr, false, {
+    on_bytes = callback,
+  })
+end
+
+-- 5. Run this for every buffer you enter
+vim.api.nvim_create_autocmd('BufEnter', {
+  pattern = '*',
+  callback = function()
+    my_change_logger(vim.api.nvim_get_current_buf())
+  end,
+})

@@ -1,0 +1,21 @@
+local log_file = vim.fn.expand '~/.local/share/nvim/change_log.txt'
+
+local function log_change(change)
+  local f = io.open(log_file, 'a')
+  f:write(vim.inspect(change) .. '\n')
+  f:close()
+end
+
+-- Attach to current buffer
+vim.api.nvim_buf_attach(0, false, {
+  on_lines = function(_, buf, changedtick, firstline, lastline, new_lastline, bytecount)
+    local lines = vim.api.nvim_buf_get_lines(buf, firstline, new_lastline, false)
+    log_change {
+      tick = changedtick,
+      start = firstline,
+      old_end = lastline,
+      new_end = new_lastline,
+      new_text = lines,
+    }
+  end,
+})

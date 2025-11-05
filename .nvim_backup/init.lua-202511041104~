@@ -249,7 +249,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 local augroup_filetype_indent = vim.api.nvim_create_augroup('FileTypeIndent', { clear = true })
 
 -- Define the filetypes to apply 2-space indentation to
-local two_space_filetypes = { 'xml', 'html', 'xsd', 'lua' }
+local two_space_filetypes = { 'xml', 'html', 'xsd' }
 
 -- Loop through the filetypes and apply the settings
 for _, filetype in ipairs(two_space_filetypes) do

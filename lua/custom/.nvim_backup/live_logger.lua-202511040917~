@@ -1,0 +1,73 @@
+-- ~/.config/nvim/lua/custom/live_logger.lua
+
+local M = {}
+
+local log_dir = vim.fn.expand '~/.local/share/nvim'
+vim.fn.mkdir(log_dir, 'p')
+local log_file = log_dir .. '/live_log.jsonl' -- JSON lines
+
+local function log_event(event)
+  local f, err = io.open(log_file, 'a')
+  if not f then
+    vim.notify('Failed to open log file: ' .. tostring(err), vim.log.levels.ERROR)
+    return
+  end
+  event.time = string.format('%.3f', vim.loop.now() / 1000) -- high-res timestamp (seconds)
+  f:write(vim.json.encode(event) .. '\n')
+  f:close()
+end
+
+-----------------------------------------------------------------------
+-- KEY EVENTS
+-----------------------------------------------------------------------
+function M.start_key_logger()
+  local ns = vim.api.nvim_create_namespace 'live_logger_keys'
+  vim.on_key(function(key)
+    local mode = vim.api.nvim_get_mode().mode
+    local pos = vim.api.nvim_win_get_cursor(0)
+    log_event {
+      type = 'key',
+      key = key,
+      mode = mode,
+      line = pos[1],
+      col = pos[2],
+    }
+  end, ns)
+  vim.notify 'Key logging started'
+end
+
+-----------------------------------------------------------------------
+-- BUFFER CHANGE EVENTS
+-----------------------------------------------------------------------
+function M.attach_buffer(bufnr)
+  vim.api.nvim_buf_attach(bufnr or 0, false, {
+    on_lines = function(_, buf, tick, first, last, new_last)
+      local lines = vim.api.nvim_buf_get_lines(buf, first, new_last, false)
+      log_event {
+        type = 'change',
+        tick = tick,
+        buf = buf,
+        start = first,
+        old_end = last,
+        new_end = new_last,
+        text = lines,
+      }
+    end,
+  })
+  vim.notify 'Buffer attached for live logging'
+end
+
+-----------------------------------------------------------------------
+-- MAIN STARTUP
+-----------------------------------------------------------------------
+function M.start()
+  M.start_key_logger()
+  M.attach_buffer(0)
+end
+
+function M.stop()
+  vim.on_key(nil, vim.api.nvim_create_namespace 'live_logger_keys')
+  vim.notify 'Live logger stopped'
+end
+
+return M

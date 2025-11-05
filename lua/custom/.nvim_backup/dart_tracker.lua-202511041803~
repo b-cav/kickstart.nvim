@@ -1,0 +1,60 @@
+-- COSC 60 25F Final Project
+-- Ben Cavanagh, Josh Meise
+--
+-- Keystroke tracker for dart collaborative
+-- editor. Converts all nvim keystrokes into
+-- "insert" "delete" or "replace" edits.
+--
+
+M = {}
+UPDATES = {}
+
+function M.log_updates(buffer)
+  local send = false -- Should we return the entire starting buffer?
+  vim.api.nvim_buf_attach(buffer, send, {
+    on_bytes = function(_, buffer, tick, srow, scol, _, oerow, oecol, _, nerow, necol, _)
+      vim.schedule(function()
+        -- Store changes as string and table
+        change = {tick, srow, scol, oerow, oecol, nerow, necol}
+        ch_str = string.format("tick=%d srow=%d scol=%d oerow=%d oecol=%d nerow=%d necol=%d",
+          tick, srow, scol, oerow, oecol, nerow, necol)
+
+        -- Grab new text
+        local ch_txt = ""
+        -- Multi-line or multi-column edits
+        if (nerow > srow or (nerow == srow and necol > scol)) then
+          local ok, text = pcall(vim.api.nvim_buf_get_text, buffer, srow, scol, nerow, necol, {})
+          if ok and text then
+            ch_txt = table.concat(text, "\n")
+          end
+        else
+        -- Single char edits
+          local ok, line = pcall(vim.api.nvim_buf_get_lines, buffer, srow, srow + 1, false)
+          if (ok and line and #line > 0 and scol < #line[1]) then
+            ch_txt = line[1]:sub(scol + 1, scol + 1)
+          end
+        end
+
+        -- Write to table and file
+        table.insert(UPDATES, change)
+        local path = vim.fn.expand("~/dartmouth/classes/cosc60-final/dartlog.txt")
+        local changelog = io.open(path, "a")
+        if changelog ~= nil then
+          changelog:write(ch_str, " text=", ch_txt, "\n")
+          changelog:close()
+        else
+          vim.notify("failed to open changelog")
+        end
+
+      end)
+    end
+  })
+end
+
+
+function M.start()
+  vim.notify("TRACKING CHANGES")
+  M.log_updates(vim.api.nvim_get_current_buf())
+end
+
+return M
