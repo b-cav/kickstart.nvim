@@ -828,15 +828,40 @@ require('lazy').setup({
           end
           map('<leader>td', function()
             local cfg = vim.diagnostic.config()
-            local show_virtual_text = not cfg.virtual_text
-            vim.diagnostic.config({
-              virtual_text = show_virtual_text,  -- toggle inline text
-              signs = true,                      -- always keep gutter symbols
-              underline = cfg.underline,         -- preserve underline setting
-              update_in_insert = cfg.update_in_insert,
-              severity_sort = cfg.severity_sort,
-            })
-          end, '[T]oggle [D]iagnostics inline text')
+            if cfg.virtual_text then
+              vim.diagnostic.config({
+                virtual_text = false
+              })
+            else
+              vim.diagnostic.config({
+                virtual_text = {
+                  source = 'if_many',
+                  spacing = 1,
+                  format = function(diagnostic)
+                    local diagnostic_message = {
+                      [vim.diagnostic.severity.ERROR] = diagnostic.message,
+                      [vim.diagnostic.severity.WARN] = diagnostic.message,
+                      [vim.diagnostic.severity.INFO] = diagnostic.message,
+                      [vim.diagnostic.severity.HINT] = diagnostic.message,
+                    }
+                    return diagnostic_message[diagnostic.severity]
+                  end,
+                }
+              })
+            end
+          end, '[T]oggle [D]iagnostic Inline Text')
+          map('<leader>tu', function()
+            local cfg = vim.diagnostic.config()
+            if cfg.underline then
+              vim.diagnostic.config({
+                underline = false
+              })
+            else
+              vim.diagnostic.config({
+                underline = true
+              })
+            end
+          end, '[T]oggle [U]nderlines')
         end,
       })
 
@@ -854,19 +879,7 @@ require('lazy').setup({
             [vim.diagnostic.severity.HINT] = '󰌶 ',
           },
         } or {},
-        virtual_text = {
-          source = 'if_many',
-          spacing = 2,
-          format = function(diagnostic)
-            local diagnostic_message = {
-              [vim.diagnostic.severity.ERROR] = diagnostic.message,
-              [vim.diagnostic.severity.WARN] = diagnostic.message,
-              [vim.diagnostic.severity.INFO] = diagnostic.message,
-              [vim.diagnostic.severity.HINT] = diagnostic.message,
-            }
-            return diagnostic_message[diagnostic.severity]
-          end,
-        },
+        virtual_text = false,
       }
 
       -- LSP servers and clients are able to communicate to each other what features they support.
