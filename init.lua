@@ -880,6 +880,7 @@ require('lazy').setup({
           },
         } or {},
         virtual_text = false,
+        underline = false,
       }
 
       -- LSP servers and clients are able to communicate to each other what features they support.
